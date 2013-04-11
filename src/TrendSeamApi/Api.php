@@ -49,7 +49,7 @@ class Api {
 	public function format_order($order) {
 		
 		$o = new \stdClass;
-		$o->OrderNumber = $order['id'];
+		$o->OrderNumber = $order['name']; // This was ['id'], but name is the human readable, incremented value
 		$o->OrderDate = $order['created_at'];
 		$o->SubTotal = $order['subtotal_price'];
 		$o->DeliveryCost = null; // No single value
@@ -122,7 +122,7 @@ class Api {
 			foreach($order['line_items'] as $line_item) {
 			
 				$li = new \stdClass;
-				$li->Sku = $line_item['sku'];
+				$li->Sku = $line_item['id']; // Was ['sku'] but this is optional in Shopify
 				$li->Barcode = null; // No mappable value
 				$li->VariantName = $line_item['variant_title'];
 				$li->Quantity = $line_item['quantity'];
