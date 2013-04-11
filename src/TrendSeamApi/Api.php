@@ -106,16 +106,16 @@ class Api {
 		$o->Customer->Gender = null; // No mappable value 
 		
 		// Customer Address
-		$o->Customer->Address->Line1 = null; // No mappable value
-		$o->Customer->Address->Line2 = null; // No mappable value
+		$o->Customer->Address->Line1 = $order['billing_address']['address1'];
+		$o->Customer->Address->Line2 = $order['billing_address']['address2'];
 		$o->Customer->Address->Line3 = null; // No mappable value
-		$o->Customer->Address->City = null; // No mappable value
-		$o->Customer->Address->County = null; // No mappable value
-		$o->Customer->Address->Postcode = null; // No mappable value
-		$o->Customer->Address->CountryCode = null; // No mappable value
-		$o->Customer->Address->Phone = null; // No mappable value
-		$o->Customer->Address->CompanyName = null; // No mappable value
-		$o->Customer->Address->PhoneNumber = null; // Repetition?
+		$o->Customer->Address->City = $order['billing_address']['city'];
+		$o->Customer->Address->County = $order['billing_address']['province'];
+		$o->Customer->Address->Postcode = $order['billing_address']['zip'];
+		$o->Customer->Address->CountryCode = $order['billing_address']['country_code'];
+		$o->Customer->Address->Phone = $order['billing_address']['phone'];
+		$o->Customer->Address->CompanyName = $order['billing_address']['company'];
+		$o->Customer->Address->PhoneNumber = $order['billing_address']['phone']; // Repetition?
 		
 		if(!empty($order['line_items']) && is_array($order['line_items'])) {
 			
