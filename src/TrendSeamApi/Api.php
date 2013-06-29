@@ -174,8 +174,6 @@ class Api {
 		
 		$data = $this->_prepareData($this->data);
 		
-		if(count($data->orders) < 1) die('No orders to transmit');
-		
 		$result = $this->transmit('orders',$data,'POST');
 		return json_decode($result);
 		
