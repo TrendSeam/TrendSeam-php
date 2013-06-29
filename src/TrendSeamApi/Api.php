@@ -121,8 +121,21 @@ class Api {
 			
 			foreach($order['line_items'] as $line_item) {
 			
+				// SKU
+				$sku = isset($line_item['product_id']) ? $line_item['product_id'] : null;
+				if (empty($sku)) $sku = isset($line_item['sku']) ? $line_item['sku'] : null;
+				if (empty($sku)) $sku = isset($line_item['title']) ? $line_item['title'] : null;
+				if (empty($sku)) $sku = isset($line_item['name']) ? $line_item['name'] : null;
+				// #TODO - what happens if we get to this stage and still no SKU? May never happen...
+				
+				// Variant SKU
+				$variant_sku = isset($line_item['variant_id']) ? $line_item['variant_id'] : null;
+				if (empty($variant_sku)) $variant_sku = isset($line_item['variant_title']) ? $line_item['variant_title'] : null;
+				if (empty($variant_sku)) $variant_sku = isset($line_item['name']) ? $line_item['name'] : null;
+				
+			
 				$li = new \stdClass;
-				$li->Sku = $line_item['id']; // Was ['sku'] but this is optional in Shopify
+				$li->Sku = $sku; // Was ['sku'] but this is optional in Shopify
 				$li->Barcode = null; // No mappable value
 				$li->VariantName = $line_item['variant_title'];
 				$li->Quantity = $line_item['quantity'];
@@ -131,9 +144,9 @@ class Api {
 				$li->ItemTax = null; // No mappable value
 				$li->LineTotal = null; // No mappable value
 				$li->CreatedOn = null; // No mappable value
-				$li->VariantSku = $line_item['variant_id']; // Is this right?
+				$li->VariantSku = $variant_sku; 
 				$li->VariantCreatedOn = null; // No mappable value 
-				$li->ProductName = $line_item['name'];
+				$li->ProductName = $line_item['title'];
 				// Vendor? Weight?
 			
 				$o->OrderItems[] = $li;
@@ -160,6 +173,9 @@ class Api {
 		// Updated orders too
 		
 		$data = $this->_prepareData($this->data);
+		
+		if(count($data->orders) < 1) die('No orders to transmit');
+		
 		$result = $this->transmit('orders',$data,'POST');
 		return json_decode($result);
 		
