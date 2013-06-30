@@ -48,11 +48,19 @@ class Api {
 	
 	public function format_order($order) {
 		
+		// Calculate Delivery Total
+		$shipping_lines_total = 0;
+		if(!empty($order['shipping_lines'])) {
+			foreach ($order['shipping_lines'] as $shipping_line) {
+				$shipping_lines_total += $shipping_line['price'];
+			}
+		}
+		
 		$o = new \stdClass;
 		$o->OrderNumber = $order['name']; // This was ['id'], but name is the human readable, incremented value
 		$o->OrderDate = $order['created_at'];
 		$o->SubTotal = $order['subtotal_price'];
-		$o->DeliveryCost = null; // No single value
+		$o->DeliveryCost = $shipping_lines_total; // Calculated
 		$o->DeliveryTax = null; // No single value
 		$o->TaxTotal = $order['total_tax'];
 		$o->GrandTotal = $order['total_price'];
@@ -139,10 +147,10 @@ class Api {
 				$li->Barcode = null; // No mappable value
 				$li->VariantName = $line_item['variant_title'];
 				$li->Quantity = $line_item['quantity'];
-				$li->CostEach = $line_item['price'];
+				$li->CostEach = null;
 				$li->ItemPrice = $line_item['price']; // Is the same as cost each?
 				$li->ItemTax = null; // No mappable value
-				$li->LineTotal = null; // No mappable value
+				$li->LineTotal = $line_item['quantity'] * $line_item['price']; // We calculate this
 				$li->CreatedOn = null; // No mappable value
 				$li->VariantSku = $variant_sku; 
 				$li->VariantCreatedOn = null; // No mappable value 
