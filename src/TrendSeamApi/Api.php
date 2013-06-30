@@ -4,13 +4,14 @@ namespace TrendSeamApi;
 
 class Api {
 	
-	private $_client_api_key;
 	private $_protocol = 'http://';
 	private $_sandbox_api_url = 'api.sandbox.trendseam.com/api/v1/';
 	private $_live_api_url = 'api.trendseam.com/api/v1/';
 	private $_sandbox_web_url = 'www.sandbox.trendseam.com/';
 	private $_live_web_url = 'www.trendseam.com/';
 	private $_current_api_url;
+	
+	private $_trendseam_api_key = null;
 
 	public $data;
 	
@@ -26,9 +27,9 @@ class Api {
 	
 	
 	
-	public function __construct() {
+	public function __construct($api_key=null) {
 		
-		$this->_default('TRENDSEAM_API_KEY', null);
+		$this->_trendseam_api_key = !is_null($api_key) ? $api_key : null;
 		
 		if($this->_developmentMode == 'live') {
 			$this->_current_api_url = $this->_protocol.$this->_live_api_url;
@@ -86,16 +87,16 @@ class Api {
 		$o->BillingAddress->PhoneNumber = $order['billing_address']['phone']; // Repetition?
 		
 		// Shipping Address
-		$o->ShippingAddress->Line1 = $order['shipping_address']['address1'];
-		$o->ShippingAddress->Line2 = $order['shipping_address']['address2'];
+		$o->ShippingAddress->Line1 = isset($order['shipping_address']['address1']) ? $order['shipping_address']['address1'] : null;
+		$o->ShippingAddress->Line2 = isset($order['shipping_address']['address2']) ? $order['shipping_address']['address2'] : null;
 		$o->ShippingAddress->Line3 = null; // No mappable value
-		$o->ShippingAddress->City = $order['shipping_address']['city'];
-		$o->ShippingAddress->County = $order['shipping_address']['province'];
-		$o->ShippingAddress->Postcode = $order['shipping_address']['zip'];
-		$o->ShippingAddress->CountryCode = $order['shipping_address']['country_code'];
-		$o->ShippingAddress->Phone = $order['shipping_address']['phone'];
-		$o->ShippingAddress->CompanyName = $order['shipping_address']['company'];
-		$o->ShippingAddress->PhoneNumber = $order['shipping_address']['phone']; // Repetition?
+		$o->ShippingAddress->City = isset($order['shipping_address']['city']) ? $order['shipping_address']['city'] : null;
+		$o->ShippingAddress->County = isset($order['shipping_address']['province']) ? $order['shipping_address']['province'] : null;
+		$o->ShippingAddress->Postcode = isset($order['shipping_address']['zip']) ? $order['shipping_address']['zip'] : null;
+		$o->ShippingAddress->CountryCode = isset($order['shipping_address']['country_code']) ? $order['shipping_address']['country_code'] : null;
+		$o->ShippingAddress->Phone = isset($order['shipping_address']['phone']) ? $order['shipping_address']['phone'] : null;
+		$o->ShippingAddress->CompanyName = isset($order['shipping_address']['company']) ? $order['shipping_address']['company'] : null;
+		$o->ShippingAddress->PhoneNumber = isset($order['shipping_address']['phone']) ? $order['shipping_address']['phone'] : null; // Repetition?
 		
 		// Customer Details
 		$o->Customer->RetailerReference = $order['customer']['id'];
@@ -194,7 +195,7 @@ class Api {
 	*/
 	public function transmit($action,$data,$method="GET")
 	{
-		if (is_null(TRENDSEAM_API_KEY)) {
+		if (is_null($this->_trendseam_api_key)) {
 			throw new Exception('TrendSeam API key is not set');
 		}
 		// Add other exceptions here!
@@ -209,7 +210,7 @@ class Api {
 			'Accept: application/json, text/javascript, */*',
 			'Connection: keep-alive',
 			'Content-Type: application/json; charset=UTF-8',
-			'Authorization: Basic '.base64_encode(TRENDSEAM_API_KEY.':'.TRENDSEAM_API_KEY),
+			'Authorization: Basic '.base64_encode($this->_trendseam_api_key.':'.$this->_trendseam_api_key),
 			'Accept-Encoding: gzip,deflate,sdch',
 			'Accept-Language: en-GB,en-US',
 			'Accept-Charset: ISO-8859-1,utf-8'
@@ -268,16 +269,6 @@ class Api {
 	private function _isTwoHundred($value)
 	{
 		return intval($value / 100) == 2;
-	}
-	
-	/**
-	* Defines a constant, if it isn't defined
-	*/
-	private function _default($name, $default)
-	{
-		if (!defined($name)) {
-			define($name, $default);
-		}
 	}
 	
 	/**
