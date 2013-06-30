@@ -26,6 +26,12 @@ class Api {
 	private $_developmentMode = self::DEVELOPMENT_MODE_SANDBOX;
 	
 	
+	private function nullIfNotSet($val=null) {
+		
+		return isset($val) ? $val : null;
+		
+	}
+	
 	
 	public function __construct($api_key=null) {
 		
@@ -49,6 +55,8 @@ class Api {
 	
 	public function format_order($order) {
 		
+		$order = empty($order) ? [] : $order;
+		
 		// Calculate Delivery Total
 		$shipping_lines_total = 0;
 		if(!empty($order['shipping_lines'])) {
@@ -58,104 +66,153 @@ class Api {
 		}
 		
 		$o = new \stdClass;
-		$o->OrderNumber = $order['name']; // This was ['id'], but name is the human readable, incremented value
-		$o->OrderDate = $order['created_at'];
-		$o->SubTotal = $order['subtotal_price'];
+		$o->OrderNumber = self::nullIfNotSet($order['name']); // This was ['id'], but name is the human readable, incremented value
+		$o->OrderDate = self::nullIfNotSet($order['created_at']);
+		$o->SubTotal = self::nullIfNotSet($order['subtotal_price']);
 		$o->DeliveryCost = $shipping_lines_total; // Calculated
 		$o->DeliveryTax = null; // No single value
-		$o->TaxTotal = $order['total_tax'];
-		$o->GrandTotal = $order['total_price'];
-		$o->Currency = $order['currency'];
+		$o->TaxTotal = self::nullIfNotSet($order['total_tax']);
+		$o->GrandTotal = self::nullIfNotSet($order['total_price']);
+		$o->Currency = self::nullIfNotSet($order['currency']);
 		$o->Cashier = null; // No mappable value
 		$o->SalesAssistant = null; // No mappable value (same?)
 		$o->SalesChannel = 'Shopify'; // Is this ok?
 		$o->BillingAddress = new \stdClass;
 		$o->ShippingAddress = new \stdClass;
 		$o->Customer = new \stdClass;
+		$o->Customer->Address = new \stdClass;
 		$o->OrderItems = [];
 		
 		// Billing Address
-		$o->BillingAddress->Line1 = $order['billing_address']['address1'];
-		$o->BillingAddress->Line2 = $order['billing_address']['address2'];
+		if(isset($order['billing_address'])) {
+		$o->BillingAddress->Line1 = self::nullIfNotSet($order['billing_address']['address1']);
+		$o->BillingAddress->Line2 = self::nullIfNotSet($order['billing_address']['address2']);
 		$o->BillingAddress->Line3 = null; // No mappable value
-		$o->BillingAddress->City = $order['billing_address']['city'];
-		$o->BillingAddress->County = $order['billing_address']['province'];
-		$o->BillingAddress->Postcode = $order['billing_address']['zip'];
-		$o->BillingAddress->CountryCode = $order['billing_address']['country_code'];
-		$o->BillingAddress->Phone = $order['billing_address']['phone'];
-		$o->BillingAddress->CompanyName = $order['billing_address']['company'];
-		$o->BillingAddress->PhoneNumber = $order['billing_address']['phone']; // Repetition?
+		$o->BillingAddress->City = self::nullIfNotSet($order['billing_address']['city']);
+		$o->BillingAddress->County = self::nullIfNotSet($order['billing_address']['province']);
+		$o->BillingAddress->Postcode = self::nullIfNotSet($order['billing_address']['zip']);
+		$o->BillingAddress->CountryCode = self::nullIfNotSet($order['billing_address']['country_code']);
+		$o->BillingAddress->Phone = self::nullIfNotSet($order['billing_address']['phone']);
+		$o->BillingAddress->CompanyName = self::nullIfNotSet($order['billing_address']['company']);
+		$o->BillingAddress->PhoneNumber = self::nullIfNotSet($order['billing_address']['phone']); // Repetition?
+		}
 		
 		// Shipping Address
-		$o->ShippingAddress->Line1 = isset($order['shipping_address']['address1']) ? $order['shipping_address']['address1'] : null;
-		$o->ShippingAddress->Line2 = isset($order['shipping_address']['address2']) ? $order['shipping_address']['address2'] : null;
+		if(isset($order['shipping_address'])) {
+		$o->ShippingAddress->Line1 = self::nullIfNotSet($order['shipping_address']['address1']);
+		$o->ShippingAddress->Line2 = self::nullIfNotSet($order['shipping_address']['address2']);
 		$o->ShippingAddress->Line3 = null; // No mappable value
-		$o->ShippingAddress->City = isset($order['shipping_address']['city']) ? $order['shipping_address']['city'] : null;
-		$o->ShippingAddress->County = isset($order['shipping_address']['province']) ? $order['shipping_address']['province'] : null;
-		$o->ShippingAddress->Postcode = isset($order['shipping_address']['zip']) ? $order['shipping_address']['zip'] : null;
-		$o->ShippingAddress->CountryCode = isset($order['shipping_address']['country_code']) ? $order['shipping_address']['country_code'] : null;
-		$o->ShippingAddress->Phone = isset($order['shipping_address']['phone']) ? $order['shipping_address']['phone'] : null;
-		$o->ShippingAddress->CompanyName = isset($order['shipping_address']['company']) ? $order['shipping_address']['company'] : null;
-		$o->ShippingAddress->PhoneNumber = isset($order['shipping_address']['phone']) ? $order['shipping_address']['phone'] : null; // Repetition?
+		$o->ShippingAddress->City = self::nullIfNotSet($order['shipping_address']['city']);
+		$o->ShippingAddress->County = self::nullIfNotSet($order['shipping_address']['province']);
+		$o->ShippingAddress->Postcode = self::nullIfNotSet($order['shipping_address']['zip']);
+		$o->ShippingAddress->CountryCode = self::nullIfNotSet($order['shipping_address']['country_code']);
+		$o->ShippingAddress->Phone = self::nullIfNotSet($order['shipping_address']['phone']);
+		$o->ShippingAddress->CompanyName = self::nullIfNotSet($order['shipping_address']['company']);
+		$o->ShippingAddress->PhoneNumber = self::nullIfNotSet($order['shipping_address']['phone']); // Repetition?
+		}
+		
 		
 		// Customer Details
-		$o->Customer->RetailerReference = $order['customer']['id'];
+		
+		if(isset($order['customer'])) {
+			
+			$customer_first_name = self::nullIfNotSet($order['customer']['first_name']);
+			$customer_last_name = self::nullIfNotSet($order['customer']['last_name']);
+			$customer_email = self::nullIfNotSet($order['customer']['email']);
+			$customer_id = self::nullIfNotSet($order['customer']['id']);
+			$customer_created_at = self::nullIfNotSet($order['customer']['created_at']);
+		
+		}
+		
+		
+		// Remedial
+		
+		if (empty($customer_first_name)) {
+			if (!empty($order['billing_address']['first_name'])) $customer_first_name = $order['billing_address']['first_name'];
+			else if (!empty($order['shipping_address']['first_name'])) $customer_first_name = $order['shipping_address']['first_name'];
+			else $customer_first_name = null;
+		}
+		
+		if (empty($customer_last_name)) {
+			if (!empty($order['billing_address']['last_name'])) $customer_last_name = $order['billing_address']['last_name'];
+			else if (!empty($order['shipping_address']['last_name'])) $customer_last_name = $order['shipping_address']['last_name'];
+			else $customer_last_name = null;
+		}
+		
+		if (empty($customer_email)) {
+			if (!empty($order['billing_address']['email'])) $customer_email = $order['billing_address']['email'];
+			else if (!empty($order['shipping_address']['email'])) $customer_email = $order['shipping_address']['email'];
+			else $customer_email = null;
+		}
+		
+		if (empty($customer_id)) {
+			if (!empty($customer_email)) $customer_id = $customer_email; // If no ID, revert to email
+			else $customer_id = null;
+		}
+		
+		if (empty($customer_created_at)) {
+			$customer_created_at = date('Y-m-d H:i:s'); // If no date, use Now
+		}
+				
+		$o->Customer->RetailerReference = $customer_id;
 		$o->Customer->Title = null; // From shipping or payment?
-		$o->Customer->FirstName = $order['customer']['first_name'];
+		$o->Customer->FirstName = $customer_first_name;
 		$o->Customer->MiddleName = null; // No mappable value
-		$o->Customer->LastName = $order['customer']['last_name'];
+		$o->Customer->LastName = $customer_last_name;
 		$o->Customer->Address = new \stdClass;
-		$o->Customer->Email = $order['customer']['email'];
+		$o->Customer->Email = $customer_email;
 		$o->Customer->MobilePhone = null; // No mappable value
 		$o->Customer->HomePhone = null; // No mappable value
 		$o->Customer->WorkPhone = null; // No mappable value
 		$o->Customer->OtherPhone = null; // No mappable value 
-		$o->Customer->DateCreated = $order['customer']['created_at'];
+		$o->Customer->DateCreated = $customer_created_at;
 		$o->Customer->DateOfBirth = null; // No mappable value
-		$o->Customer->Gender = null; // No mappable value 
+		$o->Customer->Gender = null; // No mappable value
 		
 		// Customer Address
-		$o->Customer->Address->Line1 = $order['billing_address']['address1'];
-		$o->Customer->Address->Line2 = $order['billing_address']['address2'];
+		if(isset($order['billing_address'])) {
+		$o->Customer->Address->Line1 = self::nullIfNotSet($order['billing_address']['address1']);
+		$o->Customer->Address->Line2 = self::nullIfNotSet($order['billing_address']['address2']);
 		$o->Customer->Address->Line3 = null; // No mappable value
-		$o->Customer->Address->City = $order['billing_address']['city'];
-		$o->Customer->Address->County = $order['billing_address']['province'];
-		$o->Customer->Address->Postcode = $order['billing_address']['zip'];
-		$o->Customer->Address->CountryCode = $order['billing_address']['country_code'];
-		$o->Customer->Address->Phone = $order['billing_address']['phone'];
-		$o->Customer->Address->CompanyName = $order['billing_address']['company'];
-		$o->Customer->Address->PhoneNumber = $order['billing_address']['phone']; // Repetition?
+		$o->Customer->Address->City = self::nullIfNotSet($order['billing_address']['city']);
+		$o->Customer->Address->County = self::nullIfNotSet($order['billing_address']['province']);
+		$o->Customer->Address->Postcode = self::nullIfNotSet($order['billing_address']['zip']);
+		$o->Customer->Address->CountryCode = self::nullIfNotSet($order['billing_address']['country_code']);
+		$o->Customer->Address->Phone = self::nullIfNotSet($order['billing_address']['phone']);
+		$o->Customer->Address->CompanyName = self::nullIfNotSet($order['billing_address']['company']);
+		$o->Customer->Address->PhoneNumber = self::nullIfNotSet($order['billing_address']['phone']); // Repetition?
+		}
 		
 		if(!empty($order['line_items']) && is_array($order['line_items'])) {
 			
 			foreach($order['line_items'] as $line_item) {
 			
 				// SKU
-				$sku = isset($line_item['product_id']) ? $line_item['product_id'] : null;
-				if (empty($sku)) $sku = isset($line_item['sku']) ? $line_item['sku'] : null;
-				if (empty($sku)) $sku = isset($line_item['title']) ? $line_item['title'] : null;
-				if (empty($sku)) $sku = isset($line_item['name']) ? $line_item['name'] : null;
+				$sku = self::nullIfNotSet($line_item['product_id']);
+				if (empty($sku)) $sku = self::nullIfNotSet($line_item['sku']);
+				if (empty($sku)) $sku = self::nullIfNotSet($line_item['title']);
+				if (empty($sku)) $sku = self::nullIfNotSet($line_item['name']);
 				// #TODO - what happens if we get to this stage and still no SKU? May never happen...
 				
 				// Variant SKU
-				$variant_sku = isset($line_item['variant_id']) ? $line_item['variant_id'] : null;
-				if (empty($variant_sku)) $variant_sku = isset($line_item['variant_title']) ? $line_item['variant_title'] : null;
-				if (empty($variant_sku)) $variant_sku = isset($line_item['name']) ? $line_item['name'] : null;
+				$variant_sku = self::nullIfNotSet($line_item['variant_id']);
+				if (empty($variant_sku)) $variant_sku = self::nullIfNotSet($line_item['variant_title']);
+				if (empty($variant_sku)) $variant_sku = self::nullIfNotSet($line_item['name']);
 				
 			
 				$li = new \stdClass;
 				$li->Sku = $sku; // Was ['sku'] but this is optional in Shopify
 				$li->Barcode = null; // No mappable value
-				$li->VariantName = $line_item['variant_title'];
-				$li->Quantity = $line_item['quantity'];
+				$li->VariantName = self::nullIfNotSet($line_item['variant_title']);
+				$li->Quantity = is_null($line_item['quantity']) ? 0 : $line_item['quantity'];
 				$li->CostEach = null;
-				$li->ItemPrice = $line_item['price']; // Is the same as cost each?
+				$li->ItemPrice = is_null($line_item['price']) ? 0 : $line_item['price']; // Is the same as cost each?
 				$li->ItemTax = null; // No mappable value
-				$li->LineTotal = $line_item['quantity'] * $line_item['price']; // We calculate this
+				$li->LineTotal = $li->Quantity * $li->ItemPrice; // We calculate this
 				$li->CreatedOn = null; // No mappable value
 				$li->VariantSku = $variant_sku; 
 				$li->VariantCreatedOn = null; // No mappable value 
-				$li->ProductName = $line_item['title'];
+				$li->ProductName = self::nullIfNotSet($line_item['title']);
 				// Vendor? Weight?
 			
 				$o->OrderItems[] = $li;
