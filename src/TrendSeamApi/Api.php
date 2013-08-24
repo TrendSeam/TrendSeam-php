@@ -53,6 +53,78 @@ class Api {
         return $this->_current_web_url."integrate".($vendor?'/'.$vendor:'')."?store=".$store."&callback=".$callback_url;
     }
 	
+	public function format_product($product) {
+		
+		$product = empty($product) ? [] : $product;
+
+		
+		$p = new \stdClass;
+		$p->Name = $product['title'];
+		$p->Sku = $product['id'];
+		$p->DateCreated = $product['created_at'];
+		
+		$size_key = null;
+		
+		if (isset($product['options'])) {
+			
+			foreach($product['options'] as $k => $o) {
+				
+				if (preg_match('/size/i',$o['name']) === 1) $size_key = $k+1;
+				
+			}
+			
+		}
+		
+		$p->Variants = [];
+		
+		if(!empty($product['variants']) && is_array($product['variants'])) {
+			
+			foreach($product['variants'] as $variant) {
+			
+				$vt = new \stdClass;
+				$vt->VariantSku = $variant['id'];
+				$vt->Name = $variant['title'];
+				$vt->Description = null;
+				$vt->Barcode = self::nullIfNotSet($variant['barcode']);
+				$vt->UnitPrice = is_null($variant['price']) ? 0 : $variant['price'];
+				$vt->UnitTax = null;
+				$vt->UnitCost = null;
+				$vt->DateCreated = $variant['created_at'];
+				$vt->Properties = [];
+				if (isset($product['options'][0]['name'])) 
+					$vt->Properties[$product['options'][0]['name']] = self::nullIfNotSet($variant['option1']);
+				if (isset($product['options'][1]['name'])) 
+					$vt->Properties[$product['options'][1]['name']] = self::nullIfNotSet($variant['option2']);
+				if (isset($product['options'][2]['name'])) 
+					$vt->Properties[$product['options'][2]['name']] = self::nullIfNotSet($variant['option3']);
+				
+				$vt->Size = isset($variant['option'.$size_key]) ? $variant['option'.$size_key] : null;
+				
+				$p->Variants[] = $vt;
+			
+				unset($vt);
+			
+			}
+			
+			
+		}
+		
+		
+		
+		// $p->Options = $product['options'];
+		// $p->SizeKey = $size_key;
+		
+		// print'<pre>';
+		// print_r($p);
+		// print'</pre>'; exit;
+
+		unset($size_key);
+		
+		return $p;
+			
+	}
+	
+	
 	public function format_order($order) {
 		
 		$order = empty($order) ? [] : $order;
@@ -228,6 +300,19 @@ class Api {
 	}
 	
 	
+	public function push_product_data() {
+	
+		// Params to include/use
+		// ??? See below.
+		
+		$data = $this->_prepareData($this->data);
+		
+		$result = $this->transmit('products',$data,'POST');
+		return json_decode($result);
+		
+	}
+	
+	
 	public function push_order_data() {
 	
 		// Params to include/use
@@ -259,7 +344,7 @@ class Api {
 		
 		// Data must not have carriage returns or spaces (linearise)
 		
-		$this->_current_api_url = $this->_current_api_url.$action;
+		$current_api_url = $this->_current_api_url.$action;
 		
 		$data = $this->_prepareData($data);
 		
@@ -274,7 +359,7 @@ class Api {
 		);
 
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $this->_current_api_url);
+		curl_setopt($ch, CURLOPT_URL, $current_api_url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
