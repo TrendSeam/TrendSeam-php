@@ -1,0 +1,24 @@
+{
+	"name": "higgsdesign/TrendSeamApi",
+	"type": "library",
+	"description": "Simple TrendSeam API client in PHP",
+	"keywords": ["trendseam","api"],
+	"homepage": "https://www.trendseam.com/",
+	"license": "Copyright TrendSeam 2013",
+	"authors": [
+		{
+			"name": "The Higgs Design Co.",
+			"email": "team@higgsdesign.com",
+			"homepage": "http://www.higgsdesign.com",
+			"role": "Developers"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0"
+	},
+	"autoload": {
+        "psr-0": {
+            "TrendSeamApi": "src/"
+        }
+    }
+}
