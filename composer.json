@@ -1,5 +1,5 @@
 {
-	"name": "timgaunt/TrendSeam-php",
+	"name": "TrendSeam/TrendSeam-php",
 	"type": "library",
 	"description": "Simple TrendSeam API client in PHP",
 	"keywords": ["trendseam","api"],
