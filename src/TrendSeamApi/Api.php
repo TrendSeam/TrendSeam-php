@@ -428,7 +428,7 @@ class Api {
 		$obj = json_decode($api_response);
 		$errors = [];
 		
-		// #TODO - check JSON for errors like 
+		// Check JSON for errors like 
 		// {"responseStatus":{"errorCode":"Invalid UserName or Password","message":"Invalid UserName or Password"}}
 		// return array of error strings
 		
