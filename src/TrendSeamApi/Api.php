@@ -20,7 +20,7 @@ class Api {
 	const DEBUG_RETURN = 2;
 	
 	// Change these private vars to alter level of verbosity and environment 
-	private $_debugMode = self::DEBUG_RETURN; // DEBUG_OFF or DEBUG_VERBOSE or DEBUG_RETURN
+	private $_debugMode = self::DEBUG_OFF; // DEBUG_OFF or DEBUG_VERBOSE or DEBUG_RETURN
 	private $_developmentMode = 'live'; // Set to 'live' or 'sandbox'
 	
 	
@@ -424,14 +424,21 @@ class Api {
 		return intval($value / 100) == 2;
 	}
 	
-	private function _anyApiErrors($api_response) {
-		$json = json_encode($return);
+	private function _anyApiErrors($api_response=null) {
+		$obj = json_decode($api_response);
+		$errors = [];
 		
 		// #TODO - check JSON for errors like 
 		// {"responseStatus":{"errorCode":"Invalid UserName or Password","message":"Invalid UserName or Password"}}
 		// return array of error strings
 		
-		return false;
+		if (is_object($obj) && isset($obj->responseStatus)) {
+			
+			if (isset($obj->responseStatus->errorCode)) $errors[] = '['.$obj->responseStatus->errorCode.'] '.(isset($obj->responseStatus->message) ? $obj->responseStatus->message : 'No message given');
+			
+		}
+		
+		return empty($errors) ? false : $errors;
 	}
 	
 	/**
