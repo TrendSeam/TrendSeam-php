@@ -18,12 +18,10 @@ class Api {
 	const DEBUG_OFF = 0;
 	const DEBUG_VERBOSE = 1;
 	const DEBUG_RETURN = 2;
-	const DEVELOPMENT_MODE_SANDBOX = 'sandbox';
-	const DEVELOPMENT_MODE_LIVE = 'live';
 	
 	// Change these private vars to alter level of verbosity and environment 
-	private $_debugMode = self::DEBUG_OFF;
-	private $_developmentMode = self::DEVELOPMENT_MODE_SANDBOX;
+	private $_debugMode = self::DEBUG_RETURN; // DEBUG_OFF or DEBUG_VERBOSE or DEBUG_RETURN
+	private $_developmentMode = 'live'; // Set to 'live' or 'sandbox'
 	
 	
 	private function nullIfNotSet($val=null) {
@@ -373,24 +371,37 @@ class Api {
 			print '</pre>';
 		
 		} else if ($this->_debugMode == self::DEBUG_RETURN) {
-			return array(
+			$a = array(
 				'json' => json_encode($data),
 				'headers' => $headers,
 				'return' => $return
 			);
+			return $a;
 		}
 		
 		if (curl_error($ch) != '') {
 			throw new \Exception(curl_error($ch));
 		}
 		
-		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		// This SHOULD work, but doesn't because the TrendSeam API doesn't throw accurate header codes,
+		// Instead, it sends it's own messages, which we need to check for... see below...
+		//
+		//	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		// if (!$this->_isTwoHundred($httpCode)) {
+		// 			$message = json_decode($return);
+		// 			$message = isset($message->Message) ? $message->Message : '(failed to get message)';
+		// 			throw new \Exception("Error: TrendSeam returned HTTP code $httpCode with message ".$message);
+		// 		}
 		
-		if (!$this->_isTwoHundred($httpCode)) {
-			$message = json_decode($return);
-			$message = isset($message->Message) ? $message->Message : '(failed to get message)';
-			throw new \Exception("Error: TrendSeam returned HTTP code $httpCode with message ".$message);
-		}
+		$api_errors = $this->_anyApiErrors($return);
+		
+		if ($api_errors !== false) {
+			
+			foreach ($api_errors as $api_error) {
+				throw new \Exception("TrendSeam API Error: ".$api_error);
+			}
+			
+		} 
 		
 		return $return;
 	}
@@ -411,6 +422,16 @@ class Api {
 	private function _isTwoHundred($value)
 	{
 		return intval($value / 100) == 2;
+	}
+	
+	private function _anyApiErrors($api_response) {
+		$json = json_encode($return);
+		
+		// #TODO - check JSON for errors like 
+		// {"responseStatus":{"errorCode":"Invalid UserName or Password","message":"Invalid UserName or Password"}}
+		// return array of error strings
+		
+		return false;
 	}
 	
 	/**
